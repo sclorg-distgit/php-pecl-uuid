@@ -1,3 +1,5 @@
+# centos/sclo spec file for php-pecl-uuid, from:
+#
 # remirepo spec file for php-pecl-uuid
 # with SCL compatibility, from:
 #
@@ -10,41 +12,34 @@
 # Please, preserve the changelog entries
 #
 %if 0%{?scl:1}
+%global sub_prefix sclo-%{scl_prefix}
 %if "%{scl}" == "rh-php56"
-%global sub_prefix more-php56-
-%else
-%global sub_prefix %{scl_prefix}
+%global sub_prefix sclo-php56-
 %endif
+%if "%{scl}" == "rh-php70"
+%global sub_prefix sclo-php70-
 %endif
-
-%{?scl:          %scl_package        php-pecl-uuid}
+%scl_package        php-pecl-uuid
+%endif
 
 %global pecl_name   uuid
-%global with_zts    0%{?__ztsphp:1}
-%if "%{php_version}" < "5.6"
-%global ini_name    %{pecl_name}.ini
-%else
 %global ini_name    40-%{pecl_name}.ini
-%endif
-#global prever      RC1
 
 Summary:       Universally Unique Identifier extension for PHP
 Name:          %{?sub_prefix}php-pecl-uuid
 Version:       1.0.4
-Release:       8%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
+Release:       1%{?dist}
 License:       LGPLv2+
 Group:         Development/Languages
 URL:           http://pecl.php.net/package/uuid
 Source:        http://pecl.php.net/get/%{pecl_name}-%{version}%{?prever}.tgz
 
-BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: %{?scl_prefix}php-devel
 BuildRequires: %{?scl_prefix}php-pear
 BuildRequires: libuuid-devel
 
 Requires:      %{?scl_prefix}php(zend-abi) = %{php_zend_api}
 Requires:      %{?scl_prefix}php(api) = %{php_core_api}
-%{?_sclreq:Requires: %{?scl_prefix}runtime%{?_sclreq}%{?_isa}}
 
 # both provides same extension, with different API
 Conflicts:     %{?scl_prefix}uuid-php
@@ -53,31 +48,9 @@ Provides:      %{?scl_prefix}php-%{pecl_name}               = %{version}
 Provides:      %{?scl_prefix}php-%{pecl_name}%{?_isa}       = %{version}
 Provides:      %{?scl_prefix}php-pecl(%{pecl_name})         = %{version}
 Provides:      %{?scl_prefix}php-pecl(%{pecl_name})%{?_isa} = %{version}
+%if "%{?scl_prefix}" != "%{?sub_prefix}"
 Provides:      %{?scl_prefix}php-pecl-%{pecl_name}          = %{version}-%{release}
 Provides:      %{?scl_prefix}php-pecl-%{pecl_name}%{?_isa}  = %{version}-%{release}
-
-%if "%{?vendor}" == "Remi Collet" && 0%{!?scl:1}
-# Other third party repo stuff
-Obsoletes:     php53-pecl-%{pecl_name}  <= %{version}
-Obsoletes:     php53u-pecl-%{pecl_name} <= %{version}
-Obsoletes:     php54-pecl-%{pecl_name}  <= %{version}
-Obsoletes:     php54w-pecl-%{pecl_name} <= %{version}
-%if "%{php_version}" > "5.5"
-Obsoletes:     php55u-pecl-%{pecl_name} <= %{version}
-Obsoletes:     php55w-pecl-%{pecl_name} <= %{version}
-%endif
-%if "%{php_version}" > "5.6"
-Obsoletes:     php56u-pecl-%{pecl_name} <= %{version}
-Obsoletes:     php56w-pecl-%{pecl_name} <= %{version}
-%endif
-%if "%{php_version}" > "7.0"
-Obsoletes:     php70u-pecl-%{pecl_name} <= %{version}
-Obsoletes:     php70w-pecl-%{pecl_name} <= %{version}
-%endif
-%if "%{php_version}" > "7.1"
-Obsoletes:     php71u-pecl-%{pecl_name} <= %{version}
-Obsoletes:     php71w-pecl-%{pecl_name} <= %{version}
-%endif
 %endif
 
 %if 0%{?fedora} < 20 && 0%{?rhel} < 7
@@ -112,11 +85,6 @@ if test "x${extver}" != "x%{version}%{?prever}"; then
 fi
 cd ..
 
-%if %{with_zts}
-# duplicate for ZTS build
-cp -pr NTS ZTS
-%endif
-
 # Drop in the bit of configuration
 cat > %{ini_name} << 'EOF'
 ; Enable UUID extension module
@@ -135,28 +103,11 @@ cd NTS
     --with-uuid
 make %{?_smp_mflags}
 
-%if %{with_zts}
-cd ../ZTS
-%{_bindir}/zts-phpize
-%configure \
-    --with-php-config=%{_bindir}/zts-php-config \
-    --with-libdir=%{_lib} \
-    --with-uuid
-make %{?_smp_mflags}
-%endif
-
 
 %install
-rm -rf %{buildroot}
 # Install the NTS stuff
 make -C NTS install INSTALL_ROOT=%{buildroot}
 install -D -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
-
-%if %{with_zts}
-# Install the ZTS stuff
-make -C ZTS install INSTALL_ROOT=%{buildroot}
-install -D -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
-%endif
 
 # Install the package XML file
 install -D -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
@@ -176,16 +127,6 @@ TEST_PHP_ARGS="-n -d extension_dir=$PWD/modules -d extension=%{pecl_name}.so" \
 NO_INTERACTION=1 \
 REPORT_EXIT_STATUS=1 \
 %{_bindir}/php -n run-tests.php
-
-%if %{with_zts}
-cd ../ZTS
-
-TEST_PHP_EXECUTABLE=%{__ztsphp} \
-TEST_PHP_ARGS="-n -d extension_dir=$PWD/modules -d extension=%{pecl_name}.so" \
-NO_INTERACTION=1 \
-REPORT_EXIT_STATUS=1 \
-%{__ztsphp} -n run-tests.php
-%endif
 
 
 %if 0%{?fedora} < 24
@@ -208,12 +149,7 @@ fi
 %endif
 
 
-%clean
-rm -rf %{buildroot}
-
-
 %files
-%defattr(-,root,root,-)
 %{?_licensedir:%license NTS/LICENSE}
 %doc %{pecl_docdir}/%{pecl_name}
 %{pecl_xmldir}/%{name}.xml
@@ -221,13 +157,11 @@ rm -rf %{buildroot}
 %config(noreplace) %{php_inidir}/%{ini_name}
 %{php_extdir}/%{pecl_name}.so
 
-%if %{with_zts}
-%{php_ztsextdir}/%{pecl_name}.so
-%config(noreplace) %{php_ztsinidir}/%{ini_name}
-%endif
-
 
 %changelog
+* Fri Nov 11 2016 Remi Collet <remi@fedoraproject.org> - 1.0.4-1
+- cleanup for SCLo build
+
 * Wed Sep 14 2016 Remi Collet <remi@fedoraproject.org> - 1.0.4-8
 - rebuild for PHP 7.1 new API version
 
