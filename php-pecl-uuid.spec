@@ -5,7 +5,7 @@
 #
 # Fedora spec file for php-pecl-uuid
 #
-# Copyright (c) 2012-2018 Remi Collet
+# Copyright (c) 2012-2019 Remi Collet
 # License: CC-BY-SA
 # http://creativecommons.org/licenses/by-sa/4.0/
 #
@@ -22,6 +22,9 @@
 %if "%{scl}" == "rh-php72"
 %global sub_prefix sclo-php72-
 %endif
+%if "%{scl}" == "rh-php73"
+%global sub_prefix sclo-php73-
+%endif
 %scl_package        php-pecl-uuid
 %endif
 
@@ -31,7 +34,7 @@
 Summary:       Universally Unique Identifier extension for PHP
 Name:          %{?sub_prefix}php-pecl-uuid
 Version:       1.0.4
-Release:       3%{?dist}
+Release:       4%{?dist}
 License:       LGPLv2+
 Group:         Development/Languages
 URL:           http://pecl.php.net/package/uuid
@@ -160,6 +163,9 @@ fi
 
 
 %changelog
+* Mon Oct 28 2019 Remi Collet <remi@remirepo.net> - 1.0.4-4
+- build for sclo-php73
+
 * Thu Nov 15 2018 Remi Collet <remi@remirepo.net> - 1.0.4-3
 - build for sclo-php72
 
