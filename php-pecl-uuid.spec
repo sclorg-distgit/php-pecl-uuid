@@ -13,12 +13,6 @@
 #
 %if 0%{?scl:1}
 %global sub_prefix sclo-%{scl_prefix}
-%if "%{scl}" == "rh-php70"
-%global sub_prefix sclo-php70-
-%endif
-%if "%{scl}" == "rh-php71"
-%global sub_prefix sclo-php71-
-%endif
 %if "%{scl}" == "rh-php72"
 %global sub_prefix sclo-php72-
 %endif
@@ -33,8 +27,8 @@
 
 Summary:       Universally Unique Identifier extension for PHP
 Name:          %{?sub_prefix}php-pecl-uuid
-Version:       1.0.4
-Release:       4%{?dist}
+Version:       1.0.5
+Release:       1%{?dist}
 License:       LGPLv2+
 Group:         Development/Languages
 URL:           http://pecl.php.net/package/uuid
@@ -163,6 +157,9 @@ fi
 
 
 %changelog
+* Thu Nov 28 2019 Remi Collet <remi@remirepo.net> - 1.0.5-1
+- update to 1.0.5
+
 * Mon Oct 28 2019 Remi Collet <remi@remirepo.net> - 1.0.4-4
 - build for sclo-php73
 
